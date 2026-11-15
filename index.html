@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Daily Syllabus Deck</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #F9F9F8;
+      --card-surface: #FFFFFF;
+      --card-border: #ECECE9;
+      --text-primary: #18181B;
+      --text-secondary: #6E6E77;
+      --text-muted: #A1A1AA;
+      --accent-learn: #10B981;
+      --accent-learn-soft: rgba(16, 185, 129, 0.12);
+      --accent-skip: #F59E0B;
+      --accent-skip-soft: rgba(245, 158, 11, 0.12);
+      --shadow-card: 0 20px 45px -12px rgba(24, 24, 27, 0.08), 0 4px 14px -4px rgba(24, 24, 27, 0.03);
+      --shadow-card-back: 0 10px 25px -8px rgba(24, 24, 27, 0.04);
+      --radius-card: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Subtle Paper Grain Texture */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background-image: radial-gradient(#d4d4d0 0.6px, transparent 0.6px);
+      background-size: 20px 20px;
+      z-index: 0;
+    }
+
+    /* Ambient Screen Flash Effect on Swipe */
+    .ambient-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+    }
+
+    .ambient-flash.learn-glow {
+      background: radial-gradient(circle at 50% 45%, rgba(16, 185, 129, 0.14), transparent 72%);
+      opacity: 1;
+    }
+
+    .ambient-flash.skip-glow {
+      background: radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.12), transparent 72%);
+      opacity: 1;
+    }
+
+    /* Particle Burst Layer */
+    .fx-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 40;
+      overflow: hidden;
+    }
+
+    .fx-particle {
+      position: absolute;
+      border-radius: 50%;
+      will-change: transform, opacity;
+    }
+
+    .fx-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--accent-learn);
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0.85;
+      animation: ringExpand 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes ringExpand {
+      0% {
+        width: 40px;
+        height: 40px;
+        opacity: 0.85;
+        transform: translate(-50%, -50%) scale(0.4);
+      }
+      100% {
+        width: 340px;
+        height: 340px;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    /* Card Entrance & Shuffle Animations */
+    @keyframes cardDealIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0) scale(0.93);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @keyframes cardShuffleIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(42px, 12px, 0) rotate(4deg) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+      }
+    }
+
+    .anim-deal {
+      animation: cardDealIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .anim-shuffle {
+      animation: cardShuffleIn 0.44s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Checkmark Draw Animation */
+    @keyframes drawCheck {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes haloPulse {
+      0% {
+        transform: scale(0.6);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);
+      }
+      60% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 18px rgba(16, 185, 129, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    /* Minimal Top Bar */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 28px 10px;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .date-badge {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .date-day {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .date-full {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill-stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease;
+    }
+
+    .pill-stat.bump {
+      transform: scale(1.1);
+      border-color: var(--accent-learn);
+    }
+
+    .pill-stat .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-learn);
+    }
+
+    .term-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      padding: 3px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .term-pill {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .term-pill:hover {
+      color: var(--text-primary);
+    }
+
+    .term-pill.active {
+      background: var(--text-primary);
+      color: #FFFFFF;
+    }
+
+    @media (max-width: 540px) {
+      header {
+        padding: 16px 16px 8px;
+        gap: 8px;
+      }
+      .term-pill {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--card-border);
+      background: #FFFFFF;
+      color: var(--text-secondary);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .icon-btn:hover {
+      color: var(--text-primary);
+      border-color: #DCDCD7;
+      transform: translateY(-1px);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Main Stage */
+    main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 24px;
+      width: 100%;
+    }
+
+    .deck-stage {
+      position: relative;
+      width: 100%;
+      max-width: 390px;
+      height: 500px;
+      max-height: 68vh;
+      perspective: 1200px;
+    }
+
+    /* Decorative Stacked Under-Cards */
+    .under-card {
+      position: absolute;
+      inset: 0;
+      background: var(--card-surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card-back);
+      pointer-events: none;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+    }
+
+    .under-card-2 {
+      transform: translateY(16px) scale(0.92);
+      opacity: 0.45;
+      z-index: 1;
+    }
+
+    .under-card-1 {
+      transform: translateY(8px) scale(0.96);
+      opacity: 0.78;
+      z-index: 2;
+    }
+
+    /* Active Draggable Flashcard */
+    .flashcard {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      background: var(--card-surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 32px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: grab;
+      touch-action: none;
+      will-change: transform;
+      overflow: hidden;
+    }
+
+    .flashcard:active {
+      cursor: grabbing;
+    }
+
+    /* Subtle edge glow overlays during drag */
+    .drag-tint {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s linear;
+      border-radius: var(--radius-card);
+    }
+
+    .drag-tint.learn {
+      background: radial-gradient(circle at 85% 50%, rgba(16, 185, 129, 0.16), transparent 72%);
+    }
+
+    .drag-tint.skip {
+      background: radial-gradient(circle at 15% 50%, rgba(245, 158, 11, 0.16), transparent 72%);
+    }
+
+    /* Realistic Stamp Overlays */
+    .swipe-stamp {
+      position: absolute;
+      top: 28px;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+
+    .stamp-learned {
+      left: 26px;
+      color: var(--accent-learn);
+      border: 2px solid var(--accent-learn);
+      background: rgba(255, 255, 255, 0.9);
+      transform: rotate(-10deg);
+    }
+
+    .stamp-later {
+      right: 26px;
+      color: var(--accent-skip);
+      border: 2px solid var(--accent-skip);
+      background: rgba(255, 255, 255, 0.9);
+      transform: rotate(10deg);
+    }
+
+    /* Card Content Layout */
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .subject-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      background: #F4F4F2;
+      color: var(--text-primary);
+    }
+
+    .subject-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .topic-index {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .card-center {
+      margin: auto 0;
+      padding: 16px 0;
+    }
+
+    .chapter-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .topic-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 31px;
+      line-height: 1.22;
+      font-weight: 400;
+      color: var(--text-primary);
+      letter-spacing: -0.015em;
+      margin-bottom: 16px;
+    }
+
+    .topic-focus {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 18px;
+      border-top: 1px solid #F3F3F1;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .swipe-cue {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s ease;
+    }
+
+    /* Completed / Rest State Card */
+    .completed-card {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      background: var(--card-surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 36px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.92) translateY(14px);
+      transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .completed-card.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+    }
+
+    .check-halo {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: var(--accent-learn-soft);
+      color: var(--accent-learn);
+      display: grid;
+      place-items: center;
+      margin-bottom: 22px;
+    }
+
+    .completed-card.visible .check-halo {
+      animation: haloPulse 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .completed-card.visible .check-path {
+      stroke-dasharray: 28;
+      stroke-dashoffset: 28;
+      animation: drawCheck 0.55s 0.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .completed-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 29px;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .completed-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 270px;
+      margin-bottom: 26px;
+    }
+
+    .subtle-btn {
+      background: #F5F5F3;
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .subtle-btn:hover {
+      background: #ECECE8;
+      transform: translateY(-1px);
+    }
+
+    /* Bottom Action Controls */
+    footer {
+      position: relative;
+      z-index: 10;
+      padding: 10px 24px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .action-dock {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .dock-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-secondary);
+    }
+
+    .dock-btn:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+    }
+
+    .dock-btn:active {
+      transform: scale(0.92);
+    }
+
+    .dock-btn.skip:hover {
+      color: var(--accent-skip);
+      border-color: rgba(245, 158, 11, 0.45);
+    }
+
+    .dock-btn.skip:hover svg {
+      transform: rotate(-45deg);
+      transition: transform 0.3s ease;
+    }
+
+    .dock-btn.learn:hover {
+      color: var(--accent-learn);
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .dock-btn:disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .hint-caption {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* Clean Drawer Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 24, 27, 0.22);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet {
+      background: #FFFFFF;
+      width: 100%;
+      max-width: 520px;
+      max-height: 84vh;
+      border-radius: 26px 26px 0 0;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.08);
+      padding: 24px 26px 32px;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 600px) {
+      .modal-backdrop {
+        align-items: center;
+        padding: 24px;
+      }
+      .sheet {
+        border-radius: 26px;
+        transform: translateY(16px) scale(0.97);
+      }
+    }
+
+    .modal-backdrop.open .sheet {
+      transform: translateY(0) scale(1);
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .sheet-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: #F4F4F2;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: #FFFFFF;
+      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .sheet-body {
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 4px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: #FAFAFA;
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: #B8B8B2;
+      background: #FFFFFF;
+    }
+
+    .primary-btn {
+      background: var(--text-primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .primary-btn:hover {
+      opacity: 0.9;
+    }
+
+    .topic-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-strip {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .filter-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: #FAFAFA;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-chip.active {
+      background: var(--text-primary);
+      color: #FFFFFF;
+      border-color: var(--text-primary);
+    }
+
+    .topic-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      background: #FFFFFF;
+      gap: 12px;
+    }
+
+    .topic-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .topic-item-sub {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .topic-item-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .status-learned {
+      background: var(--accent-learn-soft);
+      color: var(--accent-learn);
+    }
+
+    .status-pending {
+      background: #F4F4F2;
+      color: var(--text-secondary);
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .del-btn:hover {
+      color: #EF4444;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--text-primary);
+      color: #FFFFFF;
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 999px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 60;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Flash & Particle Effects Layers -->
+  <div class="ambient-flash" id="ambientFlash"></div>
+  <div class="fx-layer" id="fxLayer"></div>
+
+  <!-- Top Minimal Header -->
+  <header>
+    <div class="date-badge">
+      <span class="date-day" id="dayName">TODAY'S FOCUS</span>
+      <span class="date-full" id="fullDate">Sunday, Nov 15</span>
+    </div>
+    <div class="header-actions">
+      <div class="term-switcher" role="group" aria-label="Exam Term Filter">
+        <button type="button" class="term-pill active" data-term="all">All</button>
+        <button type="button" class="term-pill" data-term="half">Half-Yearly</button>
+        <button type="button" class="term-pill" data-term="final">Final</button>
+      </div>
+      <div class="pill-stat" id="statPill" title="Learned Topics">
+        <span class="dot"></span>
+        <span id="learnedCount">0 / 0</span>
+      </div>
+      <button class="icon-btn" id="openDrawerBtn" title="Manage Syllabus" aria-label="Manage Syllabus">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Toast Feedback -->
+  <div class="toast" id="toast">Topic updated</div>
+
+  <!-- Main Flashcard Stage -->
+  <main>
+    <div class="deck-stage" id="deckStage">
+      <div class="under-card under-card-2" id="underCard2"></div>
+      <div class="under-card under-card-1" id="underCard1"></div>
+
+      <!-- Active Card -->
+      <article class="flashcard" id="activeCard">
+        <div class="drag-tint learn" id="tintLearn"></div>
+        <div class="drag-tint skip" id="tintSkip"></div>
+
+        <div class="swipe-stamp stamp-learned" id="stampLearned">LEARNED</div>
+        <div class="swipe-stamp stamp-later" id="stampLater">ANOTHER DAY</div>
+
+        <div class="card-top">
+          <span class="subject-chip">
+            <span class="subject-dot" id="subjectDot"></span>
+            <span id="subjectName">Physics</span>
+          </span>
+          <span class="topic-index" id="cardNumber">#01</span>
+        </div>
+
+        <div class="card-center">
+          <div class="chapter-label" id="chapterLabel">Electromagnetism</div>
+          <h1 class="topic-title" id="topicTitle">Gauss’s Law & Electric Flux</h1>
+          <p class="topic-focus" id="topicFocus">Derive electric field due to an infinitely long straight uniformly charged wire and thin spherical shell.</p>
+        </div>
+
+        <div class="card-bottom">
+          <span class="swipe-cue">← Shuffle topic</span>
+          <span class="swipe-cue">Mark learned →</span>
+        </div>
+      </article>
+
+      <!-- Completed State -->
+      <div class="completed-card" id="completedCard">
+        <div class="check-halo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline class="check-path" points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2 class="completed-title" id="completedHeading">Done for today</h2>
+        <p class="completed-desc" id="completedSubtext">You’ve mastered today’s topic. A fresh subject awaits you tomorrow.</p>
+        <button class="subtle-btn" id="bonusTopicBtn">Draw another subject now</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Subtle Bottom Controls -->
+  <footer>
+    <div class="action-dock">
+      <button class="dock-btn skip" id="btnSkip" title="Swipe Left: Try another topic today" aria-label="Change topic for today">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+      <button class="dock-btn learn" id="btnLearn" title="Swipe Right: Register as learned" aria-label="Mark as learned">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <span class="hint-caption" id="footerCaption">Swipe right if learned · Swipe left to swap topic</span>
+  </footer>
+
+  <!-- Syllabus Management Sheet -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="sheetTitle">Syllabus Deck</h3>
+        <button class="icon-btn" id="closeDrawerBtn" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="add">Add New Topic</button>
+        <button class="tab-btn" data-tab="deck">All Topics (<span id="totalDeckCount">0</span>)</button>
+      </div>
+
+      <div class="sheet-body" id="tabAdd">
+        <form id="addTopicForm" class="form-group">
+          <div class="input-row">
+            <input type="text" id="inputSubject" placeholder="Subject (e.g. Physics, History)" list="subjectSuggestions" required />
+            <datalist id="subjectSuggestions"></datalist>
+            <select id="inputTerm" aria-label="Exam Term" style="max-width: 155px;">
+              <option value="half">Half-Yearly</option>
+              <option value="final">Final Exam</option>
+            </select>
+          </div>
+          <input type="text" id="inputChapter" placeholder="Chapter / Unit (optional)" />
+          <input type="text" id="inputTitle" placeholder="Topic Title (e.g. Integration by Parts)" required />
+          <textarea id="inputFocus" rows="3" placeholder="Key subtopics, formulas, or revision focus..."></textarea>
+          <button type="submit" class="primary-btn">Add to Syllabus Deck</button>
+        </form>
+      </div>
+
+      <div class="sheet-body" id="tabDeck" style="display: none;">
+        <div class="filter-strip" id="subjectFilterStrip"></div>
+        <div class="topic-list" id="topicListContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Complete Granular Class VII (2026–27) Compiled Syllabus — Oxford Public School, Ranchi
+    // Every individual chapter, poem, grammar unit, novel chapter, and project is its own card!
+    const DEFAULT_TOPICS = [
+      // ==================== ENGLISH (Reader, Novel, Grammar & Writing) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'eng_r1', subject: 'English', term: 'half', chapter: 'Reader · Ch-1 (April)', title: 'A Fairy Song', focus: 'Poem appreciation, poetic devices, imagery, and comprehension questions.', learned: false, learnedDate: null },
+      { id: 'eng_r2', subject: 'English', term: 'half', chapter: 'Reader · Ch-2 (April)', title: 'The Ransom of Red Chief', focus: 'Story plot, irony, character sketches of Sam, Bill, and Johnny, and vocabulary.', learned: false, learnedDate: null },
+      { id: 'eng_n1', subject: 'English', term: 'half', chapter: 'Novel · April', title: 'The Family & Visiting the Village', focus: 'Key events, characters, and comprehension from the first two Novel chapters.', learned: false, learnedDate: null },
+      { id: 'eng_g1', subject: 'English', term: 'half', chapter: 'Grammar & Writing · April', title: 'Sentences, Nouns, Adjectives & Notice Writing', focus: 'Types of sentences, classification of nouns & adjectives, and formal Notice Writing format.', learned: false, learnedDate: null },
+      { id: 'eng_r3', subject: 'English', term: 'half', chapter: 'Reader · Ch-3 (May)', title: 'The Tyger', focus: 'William Blake’s poem: symbolism, rhyme scheme, metaphors, and central theme.', learned: false, learnedDate: null },
+      { id: 'eng_n2', subject: 'English', term: 'half', chapter: 'Novel · May', title: 'Learning to Cycle', focus: 'Narrative events, character growth, and short-answer questions.', learned: false, learnedDate: null },
+      { id: 'eng_g2', subject: 'English', term: 'half', chapter: 'Grammar & Writing · May', title: 'Adverbs, Informal Letter & Story/Poem Writing', focus: 'Kinds of adverbs & their placement, Informal Letter format, and creative Story/Poem writing.', learned: false, learnedDate: null },
+      { id: 'eng_r4', subject: 'English', term: 'half', chapter: 'Reader · Ch-4 (June)', title: 'My Financial Career', focus: 'Stephen Leacock’s humorous narrative, character traits, and textual exercises.', learned: false, learnedDate: null },
+      { id: 'eng_n3', subject: 'English', term: 'half', chapter: 'Novel · June', title: 'A Wedding in the Village', focus: 'Cultural details, storyline progression, and character interactions.', learned: false, learnedDate: null },
+      { id: 'eng_g3', subject: 'English', term: 'half', chapter: 'Grammar & Writing · June', title: 'Verbs (Transitive/Intransitive, Finite/Non-finite), Pronouns & Bio-Sketch', focus: 'Distinguish verb forms, pronoun types, and practice writing concise Bio-Sketches.', learned: false, learnedDate: null },
+      { id: 'eng_r5', subject: 'English', term: 'half', chapter: 'Reader · Ch-5 (July)', title: 'The Eagle', focus: 'Alfred Lord Tennyson’s poem: imagery, personification, alliteration, and summary.', learned: false, learnedDate: null },
+      { id: 'eng_r6', subject: 'English', term: 'half', chapter: 'Reader · Ch-6 (July)', title: 'The Postmaster', focus: 'Rabindranath Tagore’s story: themes of loneliness, empathy, and character analysis.', learned: false, learnedDate: null },
+      { id: 'eng_n4', subject: 'English', term: 'half', chapter: 'Novel · July', title: 'Ajji’s Garden & The Story of a Step well', focus: 'Key plot points, environmental/historical themes, and comprehension.', learned: false, learnedDate: null },
+      { id: 'eng_g4', subject: 'English', term: 'half', chapter: 'Grammar & Writing · July', title: 'Tenses, Active & Passive Voice & Article Writing', focus: 'All tense structures, rules for Voice transformation, and structured Article Writing.', learned: false, learnedDate: null },
+      { id: 'eng_r7', subject: 'English', term: 'half', chapter: 'Reader · Ch-7 (August)', title: 'Billy Rabbit to Mary', focus: 'Reading comprehension, tone, vocabulary, and textual questions.', learned: false, learnedDate: null },
+      { id: 'eng_n5', subject: 'English', term: 'half', chapter: 'Novel · August', title: 'Picnic at Varada River & The Cow’s Delivery', focus: 'Storyline events, rural life depictions, and character responses.', learned: false, learnedDate: null },
+      { id: 'eng_g5', subject: 'English', term: 'half', chapter: 'Grammar & Writing · August', title: 'Phrases, Subject-Verb Agreement & Article Writing (Contd.)', focus: 'Types of phrases, rules of concord (subject-verb agreement), and advanced article writing.', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'eng_r8', subject: 'English', term: 'final', chapter: 'Reader · Ch-8 (October)', title: 'The Necklace', focus: 'Guy de Maupassant’s story: themes of pride, irony, Mathilde’s character, and moral.', learned: false, learnedDate: null },
+      { id: 'eng_n6', subject: 'English', term: 'final', chapter: 'Novel & Grammar · October', title: 'Varada Hill, Conjunctions, Clauses & Message Writing', focus: 'Novel: Varada Hill. Grammar: Coordinating & subordinating conjunctions, clauses. Writing: Message Writing.', learned: false, learnedDate: null },
+      { id: 'eng_r9', subject: 'English', term: 'final', chapter: 'Reader · Ch-9 & Ch-10 (November)', title: 'Lochinvar & The Child’s Letter', focus: 'Ballad rhythm and heroism in Lochinvar; themes and emotions in The Child’s Letter.', learned: false, learnedDate: null },
+      { id: 'eng_n7', subject: 'English', term: 'final', chapter: 'Novel & Grammar · November', title: 'An Unusual Rain, Is It a Step well?, Transformation & Prepositions', focus: 'Novel chapters + Simple, Compound & Complex sentence transformation, Prepositions, and E-mail writing.', learned: false, learnedDate: null },
+      { id: 'eng_r10', subject: 'English', term: 'final', chapter: 'Reader · Ch-11 (December)', title: 'Inchcape Rock', focus: 'Robert Southey’s ballad: poetic justice, Sir Ralph the Rover vs Abbot of Aberbrothok.', learned: false, learnedDate: null },
+      { id: 'eng_n8', subject: 'English', term: 'final', chapter: 'Novel & Grammar · December', title: 'The Excavation, Direct & Indirect Speech & Letter to the Editor', focus: 'Novel: The Excavation. Grammar: Rules of Reported Speech. Writing: Formal Letter to the Editor.', learned: false, learnedDate: null },
+      { id: 'eng_r11', subject: 'English', term: 'final', chapter: 'Reader · Ch-12 (January)', title: 'Anne Frank’s Diary', focus: 'Historical context, Anne’s perspective, diary entry style, and comprehension.', learned: false, learnedDate: null },
+      { id: 'eng_n9', subject: 'English', term: 'final', chapter: 'Novel & Grammar · January', title: 'A Send-off Party & Direct/Indirect Speech (Contd.)', focus: 'Novel conclusion: A Send-off Party + Interrogative, imperative & exclamatory reported speech.', learned: false, learnedDate: null },
+
+      // ==================== HINDI (नयोनिका पाठमाला एवं व्याकरण) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'hin_1', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-1 (अप्रैल)', title: 'इतने ऊँचे उठो (कविता)', focus: 'कविता का भावार्थ, कठिन शब्दार्थ, प्रश्नोत्तर एवं संदेश।', learned: false, learnedDate: null },
+      { id: 'hin_2', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-2 (अप्रैल)', title: 'कंचा (कहानी)', focus: 'अप्पू का बाल-मनोविज्ञान, कहानी का सारांश एवं प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_3', subject: 'Hindi', term: 'half', chapter: 'व्याकरण · पाठ 1–2 एवं रचना (अप्रैल)', title: 'भाषा, बोली, लिपि, वर्ण-विचार, अपठित बोध एवं अनुच्छेद लेखन', focus: 'भाषा के रूप, लिपि, स्वर-व्यंजन भेद, अपठित गद्यांश/काव्यांश तथा अनुच्छेद लेखन अभ्यास।', learned: false, learnedDate: null },
+      { id: 'hin_4', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-3 एवं 4 (मई)', title: 'गिल्लू एवं हिन्दी बाल-साहित्य की सही ज़मीन', focus: 'महादेवी वर्मा का रेखाचित्र गिल्लू तथा बाल-साहित्य पर निबंध के मुख्य बिंदु व प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_5', subject: 'Hindi', term: 'half', chapter: 'व्याकरण · पाठ 4–5 एवं रचना (मई)', title: 'संधि, शब्द-रचना (उपसर्ग, प्रत्यय) एवं पत्र लेखन', focus: 'संधि के भेद, उपसर्ग-प्रत्यय से शब्द निर्माण तथा औपचारिक/अनौपचारिक पत्र लेखन।', learned: false, learnedDate: null },
+      { id: 'hin_6', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-5 (जून)', title: 'माँ कह एक कहानी', focus: 'कविता का भावार्थ, संवाद शैली एवं अभ्यास प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_7', subject: 'Hindi', term: 'half', chapter: 'व्याकरण · पाठ 6 एवं 29 (जून)', title: 'शब्द-विचार (पर्यायवाची, विलोम, अनेक शब्दों के लिए एक शब्द, समास) एवं सूचना लेखन', focus: 'शब्द भंडार, समास के भेद एवं प्रारूप सहित सूचना लेखन।', learned: false, learnedDate: null },
+      { id: 'hin_8', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-6 एवं 7 (जुलाई)', title: 'मिठाईवाला एवं मुकदमा हवा-पानी का', focus: 'कहानी व एकांकी का सार, पात्र-परिचय एवं प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_9', subject: 'Hindi', term: 'half', chapter: 'व्याकरण · पाठ 7–10 एवं 30 (जुलाई)', title: 'संज्ञा, संज्ञा-विकार (लिंग, वचन, कारक), विज्ञापन-लेखन एवं अनुच्छेद', focus: 'संज्ञा भेद, लिंग-वचन परिवर्तन, कारक चिह्न तथा आकर्षक विज्ञापन-लेखन।', learned: false, learnedDate: null },
+      { id: 'hin_10', subject: 'Hindi', term: 'half', chapter: 'पाठमाला · पाठ-8 एवं 9 (अगस्त)', title: 'अकबरी लोटा एवं तोड़ती पत्थर (कविता)', focus: 'हास्य कहानी अकबरी लोटा व निराला जी की कविता तोड़ती पत्थर का भावार्थ व प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_11', subject: 'Hindi', term: 'half', chapter: 'व्याकरण · पाठ 11–13 (अगस्त)', title: 'सर्वनाम, विशेषण, क्रिया एवं पत्र लेखन', focus: 'सर्वनाम व विशेषण के भेद, सकर्मक-अकर्मक क्रिया तथा पत्र लेखन अभ्यास।', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'hin_12', subject: 'Hindi', term: 'final', chapter: 'पाठमाला · पाठ-10 एवं 11 (अक्टूबर)', title: 'नादान दोस्त एवं मैरी कॉम', focus: 'प्रेमचंद की कहानी नादान दोस्त तथा मुक्केबाज मैरी कॉम की जीवनी के प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_13', subject: 'Hindi', term: 'final', chapter: 'व्याकरण · पाठ 15–16 (अक्टूबर)', title: 'वाच्य, अव्यय, पत्र-लेखन एवं अपठित बोध', focus: 'कर्तृवाच्य, कर्मवाच्य, भाववाच्य, अव्यय के भेद तथा अपठित गद्यांश/काव्यांश।', learned: false, learnedDate: null },
+      { id: 'hin_14', subject: 'Hindi', term: 'final', chapter: 'पाठमाला · पाठ-12 एवं 13 (नवम्बर)', title: 'छुट्टियाँ एवं बाल-लीला', focus: 'पाठ का सारांश, सूरदास/तुलसीदास के पदों की व्याख्या एवं प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_15', subject: 'Hindi', term: 'final', chapter: 'व्याकरण · पाठ 18–19 (नवम्बर)', title: 'वाक्य, विराम चिह्न एवं अनुच्छेद लेखन', focus: 'अर्थ व रचना के आधार पर वाक्य भेद, प्रमुख विराम चिह्नों का प्रयोग एवं अनुच्छेद लेखन।', learned: false, learnedDate: null },
+      { id: 'hin_16', subject: 'Hindi', term: 'final', chapter: 'पाठमाला · पाठ-14 एवं 15 (दिसम्बर)', title: 'अपूर्व अनुभव एवं नाखून क्यों बढ़ते हैं?', focus: 'तोत्तो-चान का संस्मरण तथा हजारीप्रसाद द्विवेदी के निबंध का मुख्य संदेश व प्रश्नोत्तर।', learned: false, learnedDate: null },
+      { id: 'hin_17', subject: 'Hindi', term: 'final', chapter: 'व्याकरण · पाठ 20–21 एवं 28 (दिसम्बर)', title: 'मुहावरे, लोकोक्तियाँ एवं डायरी लेखन', focus: 'प्रचलित मुहावरे व लोकोक्तियों के अर्थ एवं वाक्य प्रयोग, तथा डायरी लेखन।', learned: false, learnedDate: null },
+      { id: 'hin_18', subject: 'Hindi', term: 'final', chapter: 'पाठमाला · पाठ-16 एवं व्याकरण (जनवरी)', title: 'बदलते रंगों में (कविता), वाक्य अशुद्धियाँ एवं संवाद-लेखन', focus: 'पाठ-16 कविता भावार्थ, पाठ-23 वाक्य रचना की अशुद्धियाँ सुधार तथा पाठ-32 संवाद-लेखन।', learned: false, learnedDate: null },
+
+      // ==================== SANSKRIT (आनन्दम् भाग-2 एवं व्याकरणम्) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'san_1', subject: 'Sanskrit', term: 'half', chapter: 'आनन्दम् · पाठ 1–2 (अप्रैल)', title: 'कपोत्याः नीडम् एवं लङ्-लकारः', focus: 'पाठ-1 कपोत्याः नीडम्, पाठ-2 लङ्-लकारः (प्रथम पुरुष), लघु गद्यांश (1–3) एवं चित्र वर्णनम् (1–2)।', learned: false, learnedDate: null },
+      { id: 'san_2', subject: 'Sanskrit', term: 'half', chapter: 'आनन्दम् · पाठ 3–4 (मई)', title: 'लङ्-लकारः (मध्यम व उत्तम पुरुष) एवं दीर्घ-गुण सन्धि', focus: 'पाठ-3 व पाठ-4 लङ्-लकारः, लघु गद्यांश (4–6), पत्र लेखनम् (1–2) एवं दीर्घ-गुण सन्धयः।', learned: false, learnedDate: null },
+      { id: 'san_3', subject: 'Sanskrit', term: 'half', chapter: 'आनन्दम् · पाठ 5 (जून)', title: 'सुभाषितानि, शब्द-धातु रूपाणि एवं प्रत्ययाः', focus: 'पाठ-5 श्लोक अर्थ, शब्द रूपाणि, संख्या, धातु रूपाणि (लट्, लृट्, लङ्), अव्ययानि एवं प्रत्ययाः (क्त, क्तवतु, क्त्वा)।', learned: false, learnedDate: null },
+      { id: 'san_4', subject: 'Sanskrit', term: 'half', chapter: 'आनन्दम् · पाठ 6–7 (जुलाई)', title: 'पठतु भवान् एवं चौरस्य श्मश्रु मध्ये तृणम्', focus: 'पाठ-6 व पाठ-7 अभ्यास, पत्र लेखनम् (3–5), दीर्घ गद्यांश (1–3), संवाद-पूर्तिः (1–2) एवं वृद्धि-यण्-अयादि सन्धि।', learned: false, learnedDate: null },
+      { id: 'san_5', subject: 'Sanskrit', term: 'half', chapter: 'आनन्दम् · पाठ 8–9 (अगस्त)', title: 'अक्षरायाः जन्मदिवसः एवं सम्यक् आजीविका', focus: 'पाठ-8 व पाठ-9 प्रश्नोत्तर, दीर्घ गद्यांश (4–5), कारकाणि उपपदानि च, संवाद-पूर्तिः (3–5) एवं चित्र वर्णनम् (3–5)।', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'san_6', subject: 'Sanskrit', term: 'final', chapter: 'आनन्दम् · पाठ 10–11 (अक्टूबर)', title: 'आम्लं द्राक्षाफलम् एवं वीर अभिमन्युः', focus: 'पाठ-10 व पाठ-11 अनुवाद व प्रश्नोत्तर, लघु गद्यांश (9–10), पत्र लेखनम् (6–7), पञ्चसु लकारेषु धातु रूपाणि एवं व्यंजन सन्धि।', learned: false, learnedDate: null },
+      { id: 'san_7', subject: 'Sanskrit', term: 'final', chapter: 'आनन्दम् · पाठ 12–13 (नवम्बर)', title: 'वर्षायाः आनन्दम् एवं संख्या ज्ञानम्', focus: 'पाठ-12 व पाठ-13 अभ्यास, दीर्घ गद्यांश (6–9), चित्र वर्णनम् (6–8), संख्या लेखनम्, कारकाणि एवं प्रत्ययाः (क्त्वा, ल्यप्, तुमुन्)।', learned: false, learnedDate: null },
+      { id: 'san_8', subject: 'Sanskrit', term: 'final', chapter: 'आनन्दम् · पाठ 14 (दिसम्बर)', title: 'प्रहेलिकाः एवं विसर्ग सन्धिः', focus: 'पाठ-14 प्रहेलिकाः, विसर्ग सन्धिः, दीर्घ गद्यांश (10–12), चित्र वर्णनम् (9–12), शब्द रूपाणि एवं पत्र लेखनम् (8–10)।', learned: false, learnedDate: null },
+      { id: 'san_9', subject: 'Sanskrit', term: 'final', chapter: 'आनन्दम् · पाठ 15 (जनवरी)', title: 'संस्कृते विज्ञानम् एवं अशुद्धि संशोधनम्', focus: 'पाठ-15 संस्कृते विज्ञानम्, दीर्घ गद्यांश (13–14), अनुवादाः, संवाद-पूर्तिः (12–13) एवं अशुद्धि संशोधनम्।', learned: false, learnedDate: null },
+
+      // ==================== MATHEMATICS (Book 1 & Book 2 — Every Chapter Separate) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'math_1', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 1 (April)', title: 'Large Numbers Around Us', focus: 'Hindu-Arabic & International number systems, comparison of numbers, land of tens, estimation of numbers, and number patterns.', learned: false, learnedDate: null },
+      { id: 'math_2', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 2 (April)', title: 'Arithmetic Expressions', focus: 'Comparing expressions, identifying terms in an arithmetic expression, and important properties of arithmetic expressions.', learned: false, learnedDate: null },
+      { id: 'math_3', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 3 (May)', title: 'Decimal Numbers — A Peek Beyond the Point', focus: 'Tenths & hundredths, decimal place value, units of length/weight/money, locating decimals on number line, comparison & addition/subtraction.', learned: false, learnedDate: null },
+      { id: 'math_4', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 4 (June)', title: 'Expressions Using Letter Numbers', focus: 'Algebraic expressions, terms of an expression, operations on constant and variable, and simplification of expressions.', learned: false, learnedDate: null },
+      { id: 'math_5', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 5 (June–July)', title: 'Parallel and Intersecting Lines', focus: 'Plane, intersecting & perpendicular lines, adjacent angles, linear pair, vertically opposite angles, and transversal angles (corresponding, alternate, co-interior).', learned: false, learnedDate: null },
+      { id: 'math_6', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 6 (July)', title: 'Number Play', focus: 'Even & odd numbers, nth term patterns, magic square, Virahanka–Fibonacci numbers, and Cryptarithms or Alphametics.', learned: false, learnedDate: null },
+      { id: 'math_7', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 7 (August)', title: 'Triangles and Their Construction', focus: 'Classification of triangles, angle sum property, exterior & interior opposite angles, triangle inequality, and compass-ruler construction.', learned: false, learnedDate: null },
+      { id: 'math_8', subject: 'Mathematics', term: 'half', chapter: 'Book 1 · Chapter 8 (August)', title: 'Working with Fractions', focus: 'Multiplication of fractions by whole numbers & fractions, reciprocals, and division of fractions.', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'math_9', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 1 (October)', title: 'Congruence (Geometric Twins)', focus: 'Definition & conditions for congruence of triangles, measuring two sides and included vs non-included angle, and congruence & area.', learned: false, learnedDate: null },
+      { id: 'math_10', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 2 (Oct–Nov)', title: 'Operations on Integers', focus: 'Addition, subtraction, multiplication, and division of integers, integer properties, and Collatz Conjecture using integers.', learned: false, learnedDate: null },
+      { id: 'math_11', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 3 (November)', title: 'HCF and LCM', focus: 'Prime & composite numbers, prime factorisation, HCF by common factorisation & division method, LCM methods, and properties of HCF & LCM.', learned: false, learnedDate: null },
+      { id: 'math_12', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 4 (December)', title: 'Multiplication and Division of Decimals', focus: 'Comparing decimals, converting decimals to fractions & vice versa, magic numbers, multiplication and division of decimals.', learned: false, learnedDate: null },
+      { id: 'math_13', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 5 (December)', title: 'Connecting the Dots', focus: 'Data handling & statistics: arithmetic mean, dot plot, median, outlier, and column graphs.', learned: false, learnedDate: null },
+      { id: 'math_14', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 6 (December)', title: 'Constructions and Tilings', focus: 'Constructing symmetrical eyes using geometry, constructing an angle, equilateral triangle, regular hexagon, Tangram, and tilings.', learned: false, learnedDate: null },
+      { id: 'math_15', subject: 'Mathematics', term: 'final', chapter: 'Book 2 · Chapter 7 (January)', title: 'Finding the Unknown', focus: 'Unknowns, algebraic expressions & equations, forming and solving equations, matchstick patterns, and number word problems.', learned: false, learnedDate: null },
+
+      // ==================== SCIENCE (Neptune Science — All 17 Chapters) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'sci_1', subject: 'Science', term: 'half', chapter: 'Chapter 1 (April)', title: 'Nutrition in Plants', focus: 'Autotrophic nutrition & photosynthesis conditions/significance, heterotrophic plants (parasitic, saprophytic, insectivorous, symbiotic), and replenishing soil nutrients.', learned: false, learnedDate: null },
+      { id: 'sci_3', subject: 'Science', term: 'half', chapter: 'Chapter 3 (April–May)', title: 'Building Blocks of Matter', focus: 'Elements, symbols, molecules, atomicity, compounds, valency (combining capacity), writing chemical formulae, compounds with groups of atoms, and mixtures.', learned: false, learnedDate: null },
+      { id: 'sci_6', subject: 'Science', term: 'half', chapter: 'Chapter 6 (April)', title: 'Temperature and Heat', focus: 'Temperature scales, clinical/laboratory/digital thermometers, effects of heat, and transfer of heat via conduction, convection, and radiation.', learned: false, learnedDate: null },
+      { id: 'sci_2', subject: 'Science', term: 'half', chapter: 'Chapter 2 (May)', title: 'Nutrition in Animals', focus: 'Five steps of nutrition, Amoeba, Human Digestive System (mouth, teeth, salivary glands, stomach, small & large intestine), and digestion in ruminants.', learned: false, learnedDate: null },
+      { id: 'sci_11', subject: 'Science', term: 'half', chapter: 'Chapter 11 (May–July)', title: 'Time and Motion', focus: 'Measuring time, standard units, simple pendulum oscillations, types of motion, calculating average speed, and plotting distance-time graphs.', learned: false, learnedDate: null },
+      { id: 'sci_7', subject: 'Science', term: 'half', chapter: 'Chapter 7 (June)', title: 'Soil', focus: 'Soil formation factors, soil profile, sandy/clayey/loamy soils, water holding capacity, percolation rate, crop cultivation, soil erosion & pollution prevention.', learned: false, learnedDate: null },
+      { id: 'sci_4', subject: 'Science', term: 'half', chapter: 'Chapter 4 (June–July)', title: 'Physical and Chemical Changes', focus: 'Crystallisation, reactants & products, writing & balancing chemical equations, browning of fruits, rusting of iron, combustion, and CuSO4 + Fe reaction.', learned: false, learnedDate: null },
+      { id: 'sci_8', subject: 'Science', term: 'half', chapter: 'Chapter 8 (July–August)', title: 'Respiration: The Path to Energy', focus: 'Breathing vs cellular respiration, Human Respiratory System, mechanism of breathing, respiration in other animals, aerobic/anaerobic respiration & plants.', learned: false, learnedDate: null },
+      { id: 'sci_12', subject: 'Science', term: 'half', chapter: 'Chapter 12 (July–August)', title: 'Electric Current and Its Effects', focus: 'Electric circuits & symbols, heating effect, electric fuse, magnetic effect of current, solenoid, electromagnet, and working of an electric doorbell.', learned: false, learnedDate: null },
+      { id: 'sci_5a', subject: 'Science', term: 'half', chapter: 'Chapter 5 · Part I (August)', title: 'Acids and Bases: Types, Properties & Uses', focus: 'Organic & mineral acids, strong & weak acids, physical & chemical properties and uses of acids and bases.', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'sci_5b', subject: 'Science', term: 'final', chapter: 'Chapter 5 · Part II (October)', title: 'Indicators, pH Scale, Neutralisation & Salts', focus: 'Testing acids & bases with indicators, the pH scale, neutralisation reactions in daily life, and properties & uses of salts.', learned: false, learnedDate: null },
+      { id: 'sci_9', subject: 'Science', term: 'final', chapter: 'Chapter 9 (October–November)', title: 'Circulation and Excretion', focus: 'Blood types & functions, blood vessels, human heart working, transport in plants (water, minerals, food, transpiration), human excretion, dialysis & plant excretion.', learned: false, learnedDate: null },
+      { id: 'sci_13', subject: 'Science', term: 'final', chapter: 'Chapter 13 (November–December)', title: 'Light, Mirrors and Lenses', focus: 'Rectilinear propagation, regular/irregular reflection, real vs virtual images, plane & spherical mirrors, convex & concave lenses, and white light spectrum.', learned: false, learnedDate: null },
+      { id: 'sci_15', subject: 'Science', term: 'final', chapter: 'Chapter 15 (November)', title: 'Water', focus: 'Importance, uses, availability, and forms of water; causes and effects of water scarcity; and water conservation methods.', learned: false, learnedDate: null },
+      { id: 'sci_10', subject: 'Science', term: 'final', chapter: 'Chapter 10 (December)', title: 'Reproduction in Plants', focus: 'Asexual reproduction (budding, fragmentation, spore formation, vegetative propagation) and sexual reproduction (flower parts, pollination, fertilisation, seed dispersal).', learned: false, learnedDate: null },
+      { id: 'sci_14', subject: 'Science', term: 'final', chapter: 'Chapter 14 (December–January)', title: 'Winds, Storms and Cyclones', focus: 'Air pressure & lift, global & local winds, monsoons, sea & land breeze, thunderstorms, cyclones, tornadoes, and safety measures during storms.', learned: false, learnedDate: null },
+      { id: 'sci_16', subject: 'Science', term: 'final', chapter: 'Chapter 16 (December–January)', title: 'Wastewater Management', focus: 'Wastewater, sewage system, wastewater treatment plants (WWTP), alternative disposal methods, sanitation importance, and our role.', learned: false, learnedDate: null },
+      { id: 'sci_17', subject: 'Science', term: 'final', chapter: 'Chapter 17 (January)', title: 'Forests', focus: 'Types, structure, and layers of forests; interdependence of plants & animals; food chains & food webs; deforestation and forest conservation.', learned: false, learnedDate: null },
+
+      // ==================== SOCIAL SCIENCE (Exploring Society: Part I & Part II — All 20 Chapters) ====================
+      // Half-Yearly (Part I: Ch 1 to Ch 12)
+      { id: 'sst_p1_1', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme A · Ch 1 (April)', title: 'Geographical Diversity of India', focus: 'The Himalayas, the cold desert of India (Ladakh), and the fertile Gangetic Plains.', learned: false, learnedDate: null },
+      { id: 'sst_p1_4', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme B · Ch 4 (April)', title: 'New Beginnings: Cities and States', focus: 'Janapadas and Mahajanapadas, early democratic traditions, and the Varna-Jati system.', learned: false, learnedDate: null },
+      { id: 'sst_p1_9', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme D · Ch 9 (April)', title: 'From the Rulers to the Ruled: Types of Governments', focus: 'What is government, core functions of government, and different forms of government.', learned: false, learnedDate: null },
+      { id: 'sst_p1_2', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme A · Ch 2 (May–June)', title: 'Understanding the Weather', focus: 'Weather and its elements, weather instruments, weather stations, and predicting the weather.', learned: false, learnedDate: null },
+      { id: 'sst_p1_5', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme B · Ch 5 (May)', title: 'The Rise of Empires', focus: 'What is an empire, trade, trade routes and guilds, and the rise of Magadha.', learned: false, learnedDate: null },
+      { id: 'sst_p1_10', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme D · Ch 10 (May–June)', title: 'The Constitution of India: An Introduction', focus: 'What is a Constitution, key features, the Constitution as a living document, and understanding the Preamble.', learned: false, learnedDate: null },
+      { id: 'sst_p1_6', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme B · Ch 6 (June)', title: 'The Age of Reorganisation', focus: 'Surge of the Shungas, coming of the Chedis, and the Pandyas.', learned: false, learnedDate: null },
+      { id: 'sst_p1_3', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme A · Ch 3 (July–August)', title: 'Climates of India', focus: 'Types of climate in India, the monsoons, climates and disasters, and climate change.', learned: false, learnedDate: null },
+      { id: 'sst_p1_7', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme B · Ch 7 (July)', title: 'The Gupta Era: An Age of Tireless Creativity', focus: 'Emergence of a new power, glimpses of the Gupta Empire’s achievements, and the decline of the Guptas.', learned: false, learnedDate: null },
+      { id: 'sst_p1_11', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme E · Ch 11 (July)', title: 'From Barter to Money', focus: 'Limitations of barter, why we need money, and the basic functions of money.', learned: false, learnedDate: null },
+      { id: 'sst_p1_8', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme C · Ch 8 (August)', title: 'How the Land Becomes Sacred', focus: 'What is sacredness, sacred ecology, and reverence for mountains and forests.', learned: false, learnedDate: null },
+      { id: 'sst_p1_12', subject: 'Social Science', term: 'half', chapter: 'Part I · Theme E · Ch 12 (August)', title: 'Understanding Markets', focus: 'What is a market, markets around us, and the government’s role in the market.', learned: false, learnedDate: null },
+      // Final Exam (Part II: Ch 1 to Ch 8)
+      { id: 'sst_p2_1', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme A · Ch 1 (Oct–Nov)', title: 'The Story of Indian Farming', focus: 'India’s cultural landscape, soils of India, agricultural practices, role of government, and farming challenges.', learned: false, learnedDate: null },
+      { id: 'sst_p2_3', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme B · Ch 3 (October)', title: 'Empires and Kingdoms: 6th to 10th Centuries', focus: 'The Great King of Kings, Kashmir, and foreign invasions during the 6th–10th centuries.', learned: false, learnedDate: null },
+      { id: 'sst_p2_6', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme D · Ch 6 (October)', title: 'The State, the Government and You', focus: 'What is a State, democracy and public participation, and tiers of government.', learned: false, learnedDate: null },
+      { id: 'sst_p2_4', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme B · Ch 4 (November)', title: 'Turning Tides: 11th and 12th Centuries', focus: 'The Ghaznavid invasions, Eastern India, governance, trade, and cultural life.', learned: false, learnedDate: null },
+      { id: 'sst_p2_7', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme E · Ch 7 (November)', title: 'Infrastructure: Engine of India’s Development', focus: 'Introduction to infrastructure, transport networks, and communications infrastructure.', learned: false, learnedDate: null },
+      { id: 'sst_p2_2', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme A · Ch 2 (Dec–Jan)', title: 'India and Her Neighbours', focus: 'India and Pakistan, India’s gateway to Southeast Asia, maritime neighbours, A Nation of Islets, and The Lion City.', learned: false, learnedDate: null },
+      { id: 'sst_p2_5', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme C · Ch 5 (Dec–Jan)', title: 'India, A Home to Many', focus: 'The Story of Indian Jews, the African connection, Armenians in India, Tibetan refugees, and Indian values beyond India.', learned: false, learnedDate: null },
+      { id: 'sst_p2_8', subject: 'Social Science', term: 'final', chapter: 'Part II · Theme E · Ch 8 (Dec–Jan)', title: 'Banks and the Magic of Finance', focus: 'Banking basics, loans or credit, other financial institutions, digital payment modes & systems, and the Stock Market.', learned: false, learnedDate: null },
+
+      // ==================== COMPUTER (All 10 Lessons Separate) ====================
+      // Half-Yearly (Lessons 1 - 6)
+      { id: 'comp_1', subject: 'Computer', term: 'half', chapter: 'Lesson 1 (April)', title: 'Number System', focus: 'Decimal, Binary, Octal, and Hexadecimal number systems, inter-conversions, and computer arithmetic.', learned: false, learnedDate: null },
+      { id: 'comp_2', subject: 'Computer', term: 'half', chapter: 'Lesson 2 (April–May)', title: 'Functions in Excel', focus: 'Formulas & functions, cell & cell address, SUM(), AVERAGE(), MAX(), MIN(), COUNT(), and AutoSum.', learned: false, learnedDate: null },
+      { id: 'comp_3', subject: 'Computer', term: 'half', chapter: 'Lesson 3 (May–June)', title: 'More in Excel', focus: 'Sorting vs filtering data, conditional formatting, charts in Excel, components and types of charts.', learned: false, learnedDate: null },
+      { id: 'comp_4', subject: 'Computer', term: 'half', chapter: 'Lesson 4 (July)', title: 'Introduction to Krita', focus: 'Features of Krita, Krita window components, creating a new document, adding images, selection and editing tools.', learned: false, learnedDate: null },
+      { id: 'comp_5', subject: 'Computer', term: 'half', chapter: 'Lesson 5 (July)', title: 'Working in HTML-5', focus: 'Meaning & purpose of CSS, methods of applying CSS, Inline Style, background, text, font, margin, and border properties.', learned: false, learnedDate: null },
+      { id: 'comp_6', subject: 'Computer', term: 'half', chapter: 'Lesson 6 (August)', title: 'More on HTML-5', focus: 'Ordered, unordered, nested & description lists, list properties, creating HTML tables, and list/table tags.', learned: false, learnedDate: null },
+      // Final Exam (Lessons 7 - 10)
+      { id: 'comp_7', subject: 'Computer', term: 'final', chapter: 'Lesson 7 (October–November)', title: 'Introduction to Python', focus: 'Interpreter vs compiler, IDE, interactive & script mode, variables, constants, data types, keywords, and print() function.', learned: false, learnedDate: null },
+      { id: 'comp_8', subject: 'Computer', term: 'final', chapter: 'Lesson 8 (November)', title: 'More on Python', focus: 'Using input() function, operators and their types, operator precedence, BODMAS, and PEDMAS in Python.', learned: false, learnedDate: null },
+      { id: 'comp_9', subject: 'Computer', term: 'final', chapter: 'Lesson 9 (December)', title: 'Robotics', focus: 'Importance, evolution, types, Three Laws of Robotics, key components, applications, pros & cons, and Introduction to ChatGPT.', learned: false, learnedDate: null },
+      { id: 'comp_10', subject: 'Computer', term: 'final', chapter: 'Lesson 10 (January)', title: 'Cyber Ethics and Digital Footprints', focus: 'Computer ethics, unethical practices & cybercrime against individuals/property/society, safety measures, and digital footprints.', learned: false, learnedDate: null },
+
+      // ==================== EVS (All 8 Chapters Separate) ====================
+      // Half-Yearly (Ch 1 - 4)
+      { id: 'evs_1', subject: 'EVS', term: 'half', chapter: 'Chapter 1 (April–May)', title: 'Water — A Precious Resource', focus: 'Forms of water, groundwater depletion, water distribution, and sustainable water management.', learned: false, learnedDate: null },
+      { id: 'evs_2', subject: 'EVS', term: 'half', chapter: 'Chapter 2 (June)', title: 'Air', focus: 'Composition of air, layers of the atmosphere, importance of air, and controlling air pollution.', learned: false, learnedDate: null },
+      { id: 'evs_3', subject: 'EVS', term: 'half', chapter: 'Chapter 3 (July)', title: 'Soil — Its Composition and Importance', focus: 'Components of soil, soil horizons, fertility, and soil conservation practices.', learned: false, learnedDate: null },
+      { id: 'evs_4', subject: 'EVS', term: 'half', chapter: 'Chapter 4 (August)', title: 'Forest — A Resource Storehouse and More', focus: 'Biodiversity in forests, ecological balance, forest products, and protection against deforestation.', learned: false, learnedDate: null },
+      // Final Exam (Ch 5 - 8)
+      { id: 'evs_5', subject: 'EVS', term: 'final', chapter: 'Chapter 5 (October)', title: 'Adaptation in Plants and Animals', focus: 'How plants and animals adapt structurally and behaviorally to desert, aquatic, mountain, and polar habitats.', learned: false, learnedDate: null },
+      { id: 'evs_6', subject: 'EVS', term: 'final', chapter: 'Chapter 6 (November)', title: 'Modification of the Environment by Human Beings', focus: 'Urbanisation, industrialisation, mining, and human alterations to natural habitats.', learned: false, learnedDate: null },
+      { id: 'evs_7', subject: 'EVS', term: 'final', chapter: 'Chapter 7 (December)', title: 'Population Growth and Its Effect', focus: 'Causes of rapid population growth and its pressure on food, water, land, and energy resources.', learned: false, learnedDate: null },
+      { id: 'evs_8', subject: 'EVS', term: 'final', chapter: 'Chapter 8 (January)', title: 'Consequences of Human Activities on the Environment', focus: 'Global warming, ozone depletion, acid rain, waste management, and eco-friendly habits.', learned: false, learnedDate: null },
+
+      // ==================== GENERAL KNOWLEDGE (Learning & Knowing — Monthly Units) ====================
+      // Half-Yearly (Apr - Aug)
+      { id: 'gk_1', subject: 'General Knowledge', term: 'half', chapter: 'Unit 1 · April', title: 'Talking 21st Century, Parliaments, UN & Nobel Laureates', focus: 'Modern global terms, Parliaments of the World, The United Nations organs, and famous Nobel Laureates.', learned: false, learnedDate: null },
+      { id: 'gk_2', subject: 'General Knowledge', term: 'half', chapter: 'Unit 2 · May', title: 'Do You Know Them?, Know the World, Antarctic Adventure & Sailing', focus: 'Notable world personalities, geography facts, Antarctic expeditions, and the story of sailing.', learned: false, learnedDate: null },
+      { id: 'gk_3', subject: 'General Knowledge', term: 'half', chapter: 'Unit 3 · June', title: 'Famous Trains, Find Out & Answer, Acronyms & Autobiographies', focus: 'Iconic world railways, common acronyms, and famous autobiographies.', learned: false, learnedDate: null },
+      { id: 'gk_4', subject: 'General Knowledge', term: 'half', chapter: 'Unit 4 · July', title: 'Phobias, Word Game, Pioneers & Contributors to Science', focus: 'Scientific names of phobias, vocabulary puzzles, and great pioneers & contributors to science.', learned: false, learnedDate: null },
+      { id: 'gk_5', subject: 'General Knowledge', term: 'half', chapter: 'Unit 5 · August', title: 'Space Travel, Biodiesel & Net Terminology', focus: 'Milestones in space exploration, clean biofuel energy (biodiesel), and internet terminology.', learned: false, learnedDate: null },
+      // Final Exam (Oct - Jan)
+      { id: 'gk_6', subject: 'General Knowledge', term: 'final', chapter: 'Unit 6 · October', title: 'Flora & Birds of India, Medicinal Plants & Kingdom of the Ocean', focus: 'Indian biodiversity, medicinal herbs, native birds, and marine ecosystems.', learned: false, learnedDate: null },
+      { id: 'gk_7', subject: 'General Knowledge', term: 'final', chapter: 'Unit 7 · November', title: 'Tackling Garbage, Recycled Paper, Environmentalists & Mental Ability', focus: 'Waste management, recycling, great environmentalists, logical reasoning, and 60 Years of Indian Science.', learned: false, learnedDate: null },
+      { id: 'gk_8', subject: 'General Knowledge', term: 'final', chapter: 'Unit 8 · December', title: 'Social Reformers, Seven Sister States, Thrilling Sports & Cricket T20', focus: 'Indian social reformers, Northeast India’s Seven Sisters, adventure sports, Counting on Courage & Cricket T20.', learned: false, learnedDate: null },
+      { id: 'gk_9', subject: 'General Knowledge', term: 'final', chapter: 'Unit 9 · January', title: 'At the Movies, Celebrities Who Care, Emotional Intelligence & Quiz Time', focus: 'Cinema trivia, humanitarian celebrities, emotional intelligence skills, and mixed quiz review.', learned: false, learnedDate: null },
+
+      // ==================== MORAL SCIENCE (All 9 Chapters Separate) ====================
+      // Half-Yearly (Ch 1 - 5)
+      { id: 'ms_1', subject: 'Moral Science', term: 'half', chapter: 'Chapter 1 (April)', title: 'Body Image', focus: 'Building healthy self-esteem, self-acceptance, and positive body confidence.', learned: false, learnedDate: null },
+      { id: 'ms_2', subject: 'Moral Science', term: 'half', chapter: 'Chapter 2 (May)', title: 'Handling Peer Pressure', focus: 'Recognizing positive vs negative peer influence and making independent, principled choices.', learned: false, learnedDate: null },
+      { id: 'ms_3', subject: 'Moral Science', term: 'half', chapter: 'Chapter 3 (June)', title: 'Family: My Real Strength', focus: 'Gratitude, empathy, communication, and mutual support within the family.', learned: false, learnedDate: null },
+      { id: 'ms_4', subject: 'Moral Science', term: 'half', chapter: 'Chapter 4 (July)', title: 'Communication Skills', focus: 'Active listening, respectful expression, body language, and resolving misunderstandings.', learned: false, learnedDate: null },
+      { id: 'ms_5', subject: 'Moral Science', term: 'half', chapter: 'Chapter 5 (August)', title: 'Rebellious Behaviour', focus: 'Channeling emotions constructively, understanding rules, and practicing self-discipline.', learned: false, learnedDate: null },
+      // Final Exam (Ch 6, 7, 8, 10)
+      { id: 'ms_6', subject: 'Moral Science', term: 'final', chapter: 'Chapter 6 (October)', title: 'Gender Sensitisation', focus: 'Equality, mutual respect, breaking stereotypes, and fairness for everyone.', learned: false, learnedDate: null },
+      { id: 'ms_7', subject: 'Moral Science', term: 'final', chapter: 'Chapter 7 (November)', title: 'Impact of Parental Conflict', focus: 'Emotional resilience, healthy coping mechanisms, and seeking trusted support.', learned: false, learnedDate: null },
+      { id: 'ms_8', subject: 'Moral Science', term: 'final', chapter: 'Chapter 8 (December)', title: 'Internet Addiction', focus: 'Balancing screen time, mindful digital habits, and real-world hobbies.', learned: false, learnedDate: null },
+      { id: 'ms_10', subject: 'Moral Science', term: 'final', chapter: 'Chapter 10 (January)', title: 'Cyberbullying', focus: 'Online safety, standing up against cyberbullying, privacy protection, and reporting harm.', learned: false, learnedDate: null },
+
+      // ==================== KAUSHAL BODH (Kaushal Prabodh — All 12 Projects Separate) ====================
+      // Half-Yearly (Projects 1 - 7)
+      { id: 'kb_1', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 1 (April)', title: 'Plant Nursery', focus: 'Propagation, soil preparation, sapling care, and nursery management skills.', learned: false, learnedDate: null },
+      { id: 'kb_2', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 2 (April)', title: 'Medicinal Plants, Herbs and Spices', focus: 'Identifying local medicinal plants, herbs, and spices and documenting their health uses.', learned: false, learnedDate: null },
+      { id: 'kb_3', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 3 (May)', title: 'Make Your Own Terrarium', focus: 'Building a self-sustaining miniature glass ecosystem and understanding moisture cycles.', learned: false, learnedDate: null },
+      { id: 'kb_4', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 4 (June)', title: 'Art with Bacteria', focus: 'Exploring safe microbial patterns, agar art concepts, and biological creativity.', learned: false, learnedDate: null },
+      { id: 'kb_5', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 5 (July)', title: 'Tie and Dye', focus: 'Traditional fabric folding, binding, natural/safe dyeing techniques, and textile design.', learned: false, learnedDate: null },
+      { id: 'kb_6', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 6 (July)', title: 'School Band from Waste Materials', focus: 'Designing acoustic percussion and wind instruments from upcycled waste items.', learned: false, learnedDate: null },
+      { id: 'kb_7', subject: 'Kaushal Bodh', term: 'half', chapter: 'Project 7 (August)', title: 'Working with Microcontrollers', focus: 'Basics of sensors, inputs/outputs, simple circuits, and microcontroller programming.', learned: false, learnedDate: null },
+      // Final Exam (Projects 8 - 12)
+      { id: 'kb_8', subject: 'Kaushal Bodh', term: 'final', chapter: 'Project 8 (Oct–Jan)', title: 'Fashion and Garment', focus: 'Fabric types, basic stitching, garment design, and sustainable clothing practices.', learned: false, learnedDate: null },
+      { id: 'kb_9', subject: 'Kaushal Bodh', term: 'final', chapter: 'Project 9 (Oct–Jan)', title: 'Creating a Comic Book', focus: 'Storyboarding, character illustration, dialogue scripting, and visual storytelling.', learned: false, learnedDate: null },
+      { id: 'kb_10', subject: 'Kaushal Bodh', term: 'final', chapter: 'Project 10 (Oct–Jan)', title: 'Family Health Handbook', focus: 'Compiling nutrition, first-aid, hygiene, and preventive health records for the family.', learned: false, learnedDate: null },
+      { id: 'kb_11', subject: 'Kaushal Bodh', term: 'final', chapter: 'Project 11 (Oct–Jan)', title: 'Family Budget Navigator', focus: 'Tracking income, essential vs discretionary expenses, savings goals, and financial literacy.', learned: false, learnedDate: null },
+      { id: 'kb_12', subject: 'Kaushal Bodh', term: 'final', chapter: 'Project 12 (Oct–Jan)', title: 'Ancient History Broadcast', focus: 'Researching historical events and scripting an engaging radio/podcast-style broadcast.', learned: false, learnedDate: null }
+    ];
+
+    const SUBJECT_PALETTE = [
+      '#2563EB', // English - Royal Blue
+      '#D97706', // Hindi - Warm Amber
+      '#7C3AED', // Sanskrit - Violet
+      '#059669', // Mathematics - Emerald
+      '#0891B2', // Science - Cyan
+      '#DC2626', // Social Science - Crimson
+      '#4F46E5', // Computer - Indigo
+      '#16A34A', // EVS - Forest Green
+      '#EA580C', // GK - Burnt Orange
+      '#DB2777', // Moral Science - Rose
+      '#0D9488'  // Kaushal Bodh - Teal
+    ];
+
+    function getSubjectColor(subject) {
+      const fixedColors = {
+        'english': '#2563EB',
+        'hindi': '#D97706',
+        'sanskrit': '#7C3AED',
+        'mathematics': '#059669',
+        'science': '#0891B2',
+        'social science': '#DC2626',
+        'computer': '#4F46E5',
+        'evs': '#16A34A',
+        'general knowledge': '#EA580C',
+        'moral science': '#DB2777',
+        'kaushal bodh': '#0D9488'
+      };
+      const key = subject.trim().toLowerCase();
+      if (fixedColors[key]) return fixedColors[key];
+
+      let hash = 0;
+      for (let i = 0; i < subject.length; i++) {
+        hash = subject.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return SUBJECT_PALETTE[Math.abs(hash) % SUBJECT_PALETTE.length];
+    }
+
+    function getTodayKey() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    const STORAGE_KEY = 'daily_syllabus_deck_ops_vii_2026_v3_full';
+    let activeSubjectFilter = 'All';
+    let state = {
+      topics: [],
+      examFilter: 'all', // 'all' | 'half' | 'final'
+      dailyLog: {
+        date: getTodayKey(),
+        currentTopicId: null,
+        completedToday: false,
+        seenTodayIds: [],
+        lastTopicId: null,
+        lastSubject: null
+      },
+      history: []
+    };
+
+    function getTopicTerm(topic) {
+      if (topic.term === 'half' || topic.term === 'final') return topic.term;
+      const ch = (topic.chapter || '').toLowerCase();
+      if (/(october|november|december|january|\boct\b|\bnov\b|\bdec\b|\bjan\b|part ii|अक्टूबर|नवम्बर|दिसम्बर|जनवरी)/.test(ch)) {
+        return 'final';
+      }
+      return 'half';
+    }
+
+    function getScopedTopics() {
+      const mode = state.examFilter || 'all';
+      if (mode === 'all') return state.topics;
+      return state.topics.filter(t => getTopicTerm(t) === mode);
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+          if (!state.examFilter) state.examFilter = 'all';
+        } catch (e) {
+          state.topics = [...DEFAULT_TOPICS];
+        }
+      } else {
+        state.topics = [...DEFAULT_TOPICS];
+      }
+      state.topics.forEach(t => {
+        if (!t.term) t.term = getTopicTerm(t);
+      });
+      rolloverDayIfNeeded();
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function rolloverDayIfNeeded() {
+      const today = getTodayKey();
+      if (state.dailyLog.date !== today) {
+        const prevTopicId = state.dailyLog.currentTopicId || state.dailyLog.lastTopicId;
+        const prevTopic = state.topics.find(t => t.id === prevTopicId);
+        const prevSubject = prevTopic ? prevTopic.subject : state.dailyLog.lastSubject;
+
+        state.dailyLog = {
+          date: today,
+          currentTopicId: null,
+          completedToday: false,
+          seenTodayIds: prevTopicId ? [prevTopicId] : [],
+          lastTopicId: prevTopicId,
+          lastSubject: prevSubject
+        };
+      }
+
+      const scoped = getScopedTopics();
+      const currentValid = scoped.some(t => t.id === state.dailyLog.currentTopicId && !t.learned);
+
+      if (!state.dailyLog.completedToday && (!state.dailyLog.currentTopicId || !currentValid)) {
+        pickNextTopic(false);
+      }
+    }
+
+    function pickNextTopic(isManualSwap = false) {
+      const unlearned = getScopedTopics().filter(t => !t.learned);
+
+      if (unlearned.length === 0) {
+        state.dailyLog.currentTopicId = null;
+        saveState();
+        return null;
+      }
+
+      const currentTopic = state.topics.find(t => t.id === state.dailyLog.currentTopicId);
+      const avoidSubject = isManualSwap
+        ? (currentTopic ? currentTopic.subject : state.dailyLog.lastSubject)
+        : state.dailyLog.lastSubject;
+
+      let candidates = unlearned.filter(t => !state.dailyLog.seenTodayIds.includes(t.id));
+
+      if (candidates.length === 0) {
+        state.dailyLog.seenTodayIds = currentTopic ? [currentTopic.id] : [];
+        candidates = unlearned.filter(t => !state.dailyLog.seenTodayIds.includes(t.id));
+        if (candidates.length === 0) candidates = unlearned;
+      }
+
+      let diffSubjectCandidates = avoidSubject
+        ? candidates.filter(t => t.subject.toLowerCase() !== avoidSubject.toLowerCase())
+        : candidates;
+
+      const pool = diffSubjectCandidates.length > 0 ? diffSubjectCandidates : candidates;
+
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      state.dailyLog.currentTopicId = chosen.id;
+      if (!state.dailyLog.seenTodayIds.includes(chosen.id)) {
+        state.dailyLog.seenTodayIds.push(chosen.id);
+      }
+      saveState();
+      return chosen;
+    }
+
+    // DOM Elements
+    const activeCard = document.getElementById('activeCard');
+    const underCard1 = document.getElementById('underCard1');
+    const underCard2 = document.getElementById('underCard2');
+    const completedCard = document.getElementById('completedCard');
+    const stampLearned = document.getElementById('stampLearned');
+    const stampLater = document.getElementById('stampLater');
+    const tintLearn = document.getElementById('tintLearn');
+    const tintSkip = document.getElementById('tintSkip');
+    const btnSkip = document.getElementById('btnSkip');
+    const btnLearn = document.getElementById('btnLearn');
+    const toastEl = document.getElementById('toast');
+    const fxLayer = document.getElementById('fxLayer');
+    const ambientFlash = document.getElementById('ambientFlash');
+    const statPill = document.getElementById('statPill');
+
+    /* ==========================================================
+       VISUAL EFFECTS & PARTICLE CELEBRATIONS
+       ========================================================== */
+    function triggerAmbientGlow(type) {
+      ambientFlash.className = 'ambient-flash ' + (type === 'learn' ? 'learn-glow' : 'skip-glow');
+      setTimeout(() => {
+        ambientFlash.className = 'ambient-flash';
+      }, 450);
+    }
+
+    function spawnCelebrationBurst() {
+      const rect = document.getElementById('deckStage').getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      // 1. Expanding Sonar Ring
+      const ring = document.createElement('div');
+      ring.className = 'fx-ring';
+      ring.style.left = cx + 'px';
+      ring.style.top = cy + 'px';
+      fxLayer.appendChild(ring);
+      setTimeout(() => ring.remove(), 800);
+
+      // 2. Aesthetic Confetti & Sparkle Particles
+      const colors = ['#10B981', '#34D399', '#6EE7B7', '#FBBF24', '#60A5FA', '#A78BFA'];
+      const particleCount = 34;
+
+      for (let i = 0; i < particleCount; i++) {
+        const p = document.createElement('div');
+        p.className = 'fx-particle';
+        const size = Math.random() * 7 + 4;
+        const isPill = Math.random() > 0.55;
+        p.style.width = (isPill ? size * 1.8 : size) + 'px';
+        p.style.height = size + 'px';
+        p.style.borderRadius = isPill ? '4px' : '50%';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.left = cx + 'px';
+        p.style.top = cy + 'px';
+        fxLayer.appendChild(p);
+
+        const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.35;
+        const velocity = 95 + Math.random() * 145;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity - 35;
+        const rot = (Math.random() - 0.5) * 360;
+
+        p.animate([
+          { transform: 'translate(-50%, -50%) scale(0.4) rotate(0deg)', opacity: 1 },
+          { transform: `translate(calc(-50% + ${tx * 0.7}px), calc(-50% + ${ty * 0.7}px)) scale(1.1) rotate(${rot * 0.6}deg)`, opacity: 1, offset: 0.55 },
+          { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty + 55}px)) scale(0.2) rotate(${rot}deg)`, opacity: 0 }
+        ], {
+          duration: 720 + Math.random() * 260,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          fill: 'forwards'
+        });
+
+        setTimeout(() => p.remove(), 1050);
+      }
+
+      // Bump the header counter badge
+      statPill.classList.add('bump');
+      setTimeout(() => statPill.classList.remove('bump'), 350);
+    }
+
+    function spawnShuffleParticles() {
+      const rect = document.getElementById('deckStage').getBoundingClientRect();
+      const cx = rect.left + rect.width * 0.35;
+      const cy = rect.top + rect.height * 0.5;
+      const colors = ['#F59E0B', '#FBBF24', '#FCD34D', '#D97706'];
+
+      for (let i = 0; i < 16; i++) {
+        const p = document.createElement('div');
+        p.className = 'fx-particle';
+        const size = Math.random() * 5 + 3;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.left = cx + 'px';
+        p.style.top = cy + 'px';
+        fxLayer.appendChild(p);
+
+        const angle = Math.PI * 0.65 + (Math.random() - 0.5) * 1.4;
+        const dist = 60 + Math.random() * 90;
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist;
+
+        p.animate([
+          { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.9 },
+          { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+        ], {
+          duration: 480 + Math.random() * 180,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards'
+        });
+
+        setTimeout(() => p.remove(), 700);
+      }
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    function renderHeader() {
+      const now = new Date();
+      const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+      const fullDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById('dayName').textContent = dayName;
+      document.getElementById('fullDate').textContent = fullDate;
+
+      document.querySelectorAll('.term-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.term === (state.examFilter || 'all'));
+      });
+
+      const scoped = getScopedTopics();
+      const total = scoped.length;
+      const learned = scoped.filter(t => t.learned).length;
+      document.getElementById('learnedCount').textContent = `${learned} / ${total}`;
+      document.getElementById('totalDeckCount').textContent = total;
+    }
+
+    function renderCard(entranceType = 'deal') {
+      renderHeader();
+      const scopedTopics = getScopedTopics();
+      const unlearnedCount = scopedTopics.filter(t => !t.learned).length;
+      const topic = scopedTopics.find(t => t.id === state.dailyLog.currentTopicId);
+
+      activeCard.classList.remove('anim-deal', 'anim-shuffle');
+      activeCard.style.transition = 'none';
+      activeCard.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
+      activeCard.style.opacity = '1';
+      stampLearned.style.opacity = '0';
+      stampLater.style.opacity = '0';
+      tintLearn.style.opacity = '0';
+      tintSkip.style.opacity = '0';
+
+      if (unlearnedCount === 0) {
+        const modeLabel = state.examFilter === 'half' ? 'Half-Yearly' : (state.examFilter === 'final' ? 'Final Exam' : 'Syllabus');
+        activeCard.style.display = 'none';
+        underCard1.style.opacity = '0';
+        underCard2.style.opacity = '0';
+        completedCard.classList.add('visible');
+        document.getElementById('completedHeading').textContent = `${modeLabel} Complete`;
+        document.getElementById('completedSubtext').textContent = 'Every single topic in this exam deck has been mastered. Switch terms or add new topics anytime.';
+        document.getElementById('bonusTopicBtn').textContent = 'Add more topics';
+        document.getElementById('bonusTopicBtn').onclick = () => openDrawer('add');
+        btnSkip.disabled = true;
+        btnLearn.disabled = true;
+        document.getElementById('footerCaption').textContent = `All ${modeLabel.toLowerCase()} topics completed`;
+        return;
+      }
+
+      if (state.dailyLog.completedToday || !topic) {
+        activeCard.style.display = 'none';
+        underCard1.style.opacity = '0';
+        underCard2.style.opacity = '0';
+        completedCard.classList.add('visible');
+        document.getElementById('completedHeading').textContent = 'Learned for today';
+        document.getElementById('completedSubtext').textContent = 'Great focus. Your next subject will appear automatically tomorrow.';
+        document.getElementById('bonusTopicBtn').textContent = 'Study one more subject';
+        document.getElementById('bonusTopicBtn').onclick = () => {
+          state.dailyLog.completedToday = false;
+          pickNextTopic(false);
+          renderCard('deal');
+        };
+        btnSkip.disabled = true;
+        btnLearn.disabled = true;
+        document.getElementById('footerCaption').textContent = 'Come back tomorrow for a new subject';
+        return;
+      }
+
+      completedCard.classList.remove('visible');
+      activeCard.style.display = 'flex';
+      btnSkip.disabled = false;
+      btnLearn.disabled = false;
+      document.getElementById('footerCaption').textContent = 'Swipe right if learned · Swipe left to swap topic';
+
+      underCard1.style.opacity = unlearnedCount > 1 ? '0.78' : '0';
+      underCard2.style.opacity = unlearnedCount > 2 ? '0.45' : '0';
+
+      const indexInDeck = scopedTopics.findIndex(t => t.id === topic.id) + 1;
+      document.getElementById('subjectDot').style.backgroundColor = getSubjectColor(topic.subject);
+      document.getElementById('subjectName').textContent = topic.subject;
+      document.getElementById('cardNumber').textContent = `#${String(indexInDeck).padStart(2, '0')}`;
+      document.getElementById('chapterLabel').textContent = topic.chapter || 'Core Syllabus';
+      document.getElementById('topicTitle').textContent = topic.title;
+      document.getElementById('topicFocus').textContent = topic.focus || 'Focus on core definitions, derivations, and key problem patterns.';
+
+      // Trigger smooth entrance animation
+      void activeCard.offsetWidth;
+      if (entranceType === 'shuffle') {
+        activeCard.classList.add('anim-shuffle');
+      } else if (entranceType === 'deal') {
+        activeCard.classList.add('anim-deal');
+      }
+    }
+
+    function handleSwipeRight() {
+      const topic = state.topics.find(t => t.id === state.dailyLog.currentTopicId);
+      if (!topic) return;
+
+      topic.learned = true;
+      topic.learnedDate = getTodayKey();
+      state.dailyLog.completedToday = true;
+      state.dailyLog.lastTopicId = topic.id;
+      state.dailyLog.lastSubject = topic.subject;
+      state.history.unshift({
+        date: getTodayKey(),
+        topicId: topic.id,
+        subject: topic.subject,
+        title: topic.title
+      });
+
+      saveState();
+      triggerAmbientGlow('learn');
+      spawnCelebrationBurst();
+      showToast(`Registered: ${topic.title}`);
+      renderCard('none');
+    }
+
+    function handleSwipeLeft() {
+      const prev = state.topics.find(t => t.id === state.dailyLog.currentTopicId);
+      const next = pickNextTopic(true);
+      triggerAmbientGlow('skip');
+      spawnShuffleParticles();
+      if (next && prev && next.id === prev.id) {
+        showToast('Only one unlearned topic left');
+      } else if (next) {
+        showToast(`Switched to ${next.subject}`);
+      }
+      renderCard('shuffle');
+    }
+
+    // Realistic Physics-Based Card Dragging
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let cardWidth = 360;
+
+    function onPointerDown(e) {
+      if (state.dailyLog.completedToday) return;
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = 0;
+      currentY = 0;
+      cardWidth = activeCard.offsetWidth || 360;
+      activeCard.classList.remove('anim-deal', 'anim-shuffle');
+      activeCard.style.transition = 'none';
+      activeCard.setPointerCapture(e.pointerId);
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      currentX = e.clientX - startX;
+      currentY = (e.clientY - startY) * 0.28;
+
+      const rotateDeg = currentX * 0.048;
+      activeCard.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${rotateDeg}deg)`;
+
+      const progress = Math.min(Math.abs(currentX) / (cardWidth * 0.35), 1);
+
+      if (currentX > 12) {
+        stampLearned.style.opacity = progress;
+        tintLearn.style.opacity = progress;
+        stampLater.style.opacity = 0;
+        tintSkip.style.opacity = 0;
+      } else if (currentX < -12) {
+        stampLater.style.opacity = progress;
+        tintSkip.style.opacity = progress;
+        stampLearned.style.opacity = 0;
+        tintLearn.style.opacity = 0;
+      } else {
+        stampLearned.style.opacity = 0;
+        stampLater.style.opacity = 0;
+        tintLearn.style.opacity = 0;
+        tintSkip.style.opacity = 0;
+      }
+
+      const liftScale = 0.96 + (0.04 * progress);
+      const liftY = 8 * (1 - progress);
+      underCard1.style.transform = `translateY(${liftY}px) scale(${liftScale})`;
+    }
+
+    function onPointerUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      const threshold = cardWidth * 0.28;
+
+      if (currentX > threshold) {
+        flyOutCard('right');
+      } else if (currentX < -threshold) {
+        flyOutCard('left');
+      } else {
+        activeCard.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        activeCard.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
+        stampLearned.style.opacity = 0;
+        stampLater.style.opacity = 0;
+        tintLearn.style.opacity = 0;
+        tintSkip.style.opacity = 0;
+        underCard1.style.transform = 'translateY(8px) scale(0.96)';
+      }
+    }
+
+    function flyOutCard(direction) {
+      activeCard.classList.remove('anim-deal', 'anim-shuffle');
+      const exitX = direction === 'right' ? window.innerWidth * 0.85 : -window.innerWidth * 0.85;
+      const exitRotate = direction === 'right' ? 22 : -22;
+
+      if (direction === 'right') {
+        stampLearned.style.opacity = 1;
+        tintLearn.style.opacity = 1;
+      } else {
+        stampLater.style.opacity = 1;
+        tintSkip.style.opacity = 1;
+      }
+
+      activeCard.style.transition = 'transform 0.36s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.32s ease';
+      activeCard.style.transform = `translate3d(${exitX}px, 36px, 0) rotate(${exitRotate}deg)`;
+      activeCard.style.opacity = '0';
+      underCard1.style.transform = 'translateY(0px) scale(1)';
+
+      setTimeout(() => {
+        underCard1.style.transition = 'none';
+        underCard1.style.transform = 'translateY(8px) scale(0.96)';
+        requestAnimationFrame(() => {
+          underCard1.style.transition = 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease';
+        });
+
+        if (direction === 'right') {
+          handleSwipeRight();
+        } else {
+          handleSwipeLeft();
+        }
+      }, 310);
+    }
+
+    activeCard.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+
+    btnSkip.addEventListener('click', () => {
+      if (!btnSkip.disabled) flyOutCard('left');
+    });
+
+    btnLearn.addEventListener('click', () => {
+      if (!btnLearn.disabled) flyOutCard('right');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (document.getElementById('modalBackdrop').classList.contains('open')) return;
+      if (e.key === 'ArrowRight' && !btnLearn.disabled) flyOutCard('right');
+      if (e.key === 'ArrowLeft' && !btnSkip.disabled) flyOutCard('left');
+    });
+
+    // Exam Term Filter Switcher (All / Half-Yearly / Final)
+    document.querySelectorAll('.term-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const nextTerm = btn.dataset.term;
+        if (state.examFilter === nextTerm) return;
+
+        state.examFilter = nextTerm;
+        const scoped = getScopedTopics();
+        const currentStillMatches = scoped.some(t => t.id === state.dailyLog.currentTopicId && !t.learned);
+
+        if (!currentStillMatches) {
+          state.dailyLog.completedToday = false;
+          pickNextTopic(false);
+        }
+
+        saveState();
+        renderSubjectFilters();
+        renderTopicList();
+        renderCard('shuffle');
+
+        const label = nextTerm === 'half' ? 'Half-Yearly (Apr–Aug)' : (nextTerm === 'final' ? 'Final Exam (Oct–Jan)' : 'Full Year Syllabus');
+        showToast(`Deck filtered: ${label}`);
+      });
+    });
+
+    // Syllabus Drawer Management
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const openDrawerBtn = document.getElementById('openDrawerBtn');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+
+    function openDrawer(defaultTab = 'add') {
+      updateSubjectSuggestions();
+      renderSubjectFilters();
+      renderTopicList();
+      switchTab(defaultTab);
+      modalBackdrop.classList.add('open');
+    }
+
+    function closeDrawer() {
+      modalBackdrop.classList.remove('open');
+    }
+
+    function switchTab(tabName) {
+      tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+      document.getElementById('tabAdd').style.display = tabName === 'add' ? 'block' : 'none';
+      document.getElementById('tabDeck').style.display = tabName === 'deck' ? 'block' : 'none';
+    }
+
+    openDrawerBtn.addEventListener('click', () => openDrawer('add'));
+    closeDrawerBtn.addEventListener('click', closeDrawer);
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeDrawer();
+    });
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    function updateSubjectSuggestions() {
+      const datalist = document.getElementById('subjectSuggestions');
+      const uniqueSubjects = [...new Set(state.topics.map(t => t.subject))];
+      datalist.innerHTML = uniqueSubjects.map(s => `<option value="${s}">`).join('');
+    }
+
+    document.getElementById('addTopicForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const subject = document.getElementById('inputSubject').value.trim();
+      const term = document.getElementById('inputTerm').value;
+      const chapter = document.getElementById('inputChapter').value.trim();
+      const title = document.getElementById('inputTitle').value.trim();
+      const focus = document.getElementById('inputFocus').value.trim();
+
+      if (!subject || !title) return;
+
+      const newTopic = {
+        id: 't_' + Date.now(),
+        subject,
+        term,
+        chapter: chapter || (term === 'half' ? 'Half-Yearly Topic' : 'Final Exam Topic'),
+        title,
+        focus: focus || 'Review concepts, key definitions, and practice problems.',
+        learned: false,
+        learnedDate: null
+      };
+
+      state.topics.push(newTopic);
+
+      const matchesActiveFilter = state.examFilter === 'all' || state.examFilter === newTopic.term;
+      if (matchesActiveFilter && !state.dailyLog.completedToday && !state.dailyLog.currentTopicId) {
+        state.dailyLog.currentTopicId = newTopic.id;
+        state.dailyLog.seenTodayIds.push(newTopic.id);
+      }
+
+      saveState();
+      e.target.reset();
+      updateSubjectSuggestions();
+      renderSubjectFilters();
+      renderTopicList();
+      renderCard('deal');
+      showToast(`Added "${title}" to ${subject}`);
+      switchTab('deck');
+    });
+
+    function renderSubjectFilters() {
+      const strip = document.getElementById('subjectFilterStrip');
+      const subjects = ['All', ...new Set(getScopedTopics().map(t => t.subject))];
+      if (!subjects.includes(activeSubjectFilter)) {
+        activeSubjectFilter = 'All';
+      }
+      strip.innerHTML = subjects.map(sub => `
+        <button type="button" class="filter-chip ${activeSubjectFilter === sub ? 'active' : ''}" onclick="setSubjectFilter('${sub.replace(/'/g, "\\'")}')">
+          ${sub}
+        </button>
+      `).join('');
+    }
+
+    window.setSubjectFilter = function(sub) {
+      activeSubjectFilter = sub;
+      renderSubjectFilters();
+      renderTopicList();
+    };
+
+    function renderTopicList() {
+      const container = document.getElementById('topicListContainer');
+      const scoped = getScopedTopics();
+      const filteredTopics = activeSubjectFilter === 'All'
+        ? scoped
+        : scoped.filter(t => t.subject === activeSubjectFilter);
+
+      if (filteredTopics.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:24px 0;">No topics found in this view.</p>`;
+        return;
+      }
+
+      container.innerHTML = filteredTopics.map(t => `
+        <div class="topic-item">
+          <div class="topic-item-info">
+            <span class="topic-item-sub" style="color:${getSubjectColor(t.subject)}">${t.subject} · ${t.chapter}</span>
+            <span class="topic-item-name">${t.title}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="status-badge ${t.learned ? 'status-learned' : 'status-pending'}" style="cursor:pointer;" onclick="toggleTopicStatus('${t.id}')" title="Click to toggle status">
+              ${t.learned ? 'Learned' : 'In Deck'}
+            </span>
+            <button class="del-btn" onclick="deleteTopic('${t.id}')" title="Remove topic">&times;</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.toggleTopicStatus = function(id) {
+      const t = state.topics.find(item => item.id === id);
+      if (!t) return;
+      t.learned = !t.learned;
+      t.learnedDate = t.learned ? getTodayKey() : null;
+
+      if (t.learned && state.dailyLog.currentTopicId === id) {
+        pickNextTopic(false);
+      } else if (!t.learned && !state.dailyLog.completedToday && !state.dailyLog.currentTopicId) {
+        state.dailyLog.currentTopicId = t.id;
+      }
+
+      saveState();
+      renderTopicList();
+      renderCard('deal');
+    };
+
+    window.deleteTopic = function(id) {
+      state.topics = state.topics.filter(t => t.id !== id);
+      if (state.dailyLog.currentTopicId === id) {
+        state.dailyLog.currentTopicId = null;
+        if (!state.dailyLog.completedToday) {
+          pickNextTopic(false);
+        }
+      }
+      saveState();
+      renderTopicList();
+      renderCard('deal');
+      showToast('Topic removed');
+    };
+
+    // Initialize Application
+    loadState();
+    renderCard('deal');
+  </script>
+</body>
+</html>
